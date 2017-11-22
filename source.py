@@ -14,20 +14,26 @@ def dist(x, y):
 class GradientDescent:
     def __init__(self, path):
         data = np.array(pd.read_csv(path, sep=' ', header=None))
-        self.A = data[1:]
+        # Первая строка - вектор d в уравнении Ax = d.
         self.d = data[:1][0]
+
+        # Остальные строки - матрица A в уравнении Ax = d.
+        self.A = data[1:]
+
+        # Фи, вычисляющиеся итеративно.
         self.all_phi = []
 
     def compute_tau_k(self, phi_k):
         r_k = self.compute_r_k(phi_k)
-        return np.dot(r_k, r_k.T) / np.dot(np.dot(self.A, r_k), r_k.T)
+        return np.dot(r_k, r_k) / np.dot(np.dot(self.A, r_k), r_k)
 
     def compute_r_k(self, phi_k):
         return np.dot(self.A, phi_k) - self.d
 
     def next_phi(self, phi_k):
         tau_k = self.compute_tau_k(phi_k)
-        return phi_k - tau_k*(np.dot(self.A, phi_k) - self.d)
+        r_k = self.compute_r_k(phi_k)
+        return phi_k - tau_k*r_k
 
     def run(self, eps=0.001, phi_0=None):
         if phi_0 is None:
@@ -40,7 +46,7 @@ class GradientDescent:
         max_iters = 10000
         while iters < max_iters and dist(self.all_phi[-2], self.all_phi[-1]) > eps:
             phi = self.all_phi[-1]
-            next_phi = self.next_phi(self.all_phi[-1])
+            next_phi = self.next_phi(phi)
             self.all_phi.append(next_phi)
             print('k=', iters, phi, 'tau=', self.compute_tau_k(phi), 'rk=', self.compute_r_k(phi),
                   'dist=', dist(self.all_phi[-2], self.all_phi[-1]))
@@ -51,5 +57,5 @@ class GradientDescent:
         self.all_phi = list()
 
 
-task = GradientDescent('res/matrix')
+task = GradientDescent('res/matrix.txt')
 task.run()
